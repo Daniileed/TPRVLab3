@@ -6,8 +6,7 @@ import random
 comm = MPI.COMM_WORLD
 ProcessNumber = comm.Get_size()
 rank = comm.Get_rank()
-
-size = 128
+size = 4
 
 Am = [0]*size
 Bm = [0]*size
@@ -27,6 +26,12 @@ def CalculateMatrix(start, end):
                 MP[i][j] += Am[i][k]*Bm[k][j]
     print(f"Process {rank} completed calculation.")
 
+def PrintMatrix():
+    for i in range(size):
+        for j in range(size):
+            print(Am[i][j]," ",Bm[i][j], " ", M[i][j], MP[i][j], end = '')
+            print()
+
 def CompareMatrixes():
     C = True
     for i in range(size):
@@ -35,51 +40,79 @@ def CompareMatrixes():
              C = False
     return "Matrix is equel" if C == True else "Matrix not equel"
 
-def RecieveMatrix(source):
-    for i in range((source*size)//ProcessNumber + 1, ((source + 1)*size)*ProcessNumber):
+def RecieveResult(begin , end, source):
+    for i in range(begin, end):
         for j in range(size):
          MP[i][j] = comm.recv(source = source)
 
+def SendResult(start, end):
+    for i in range(start, end):
+        for j in range(size):
+            comm.send(MP[i][j],dest = 0)
+
+def RecieveMatrixes(start,end):
+    for i in range(start, end):
+        for j in range(size):
+            Am[i][j] = comm.recv(source = 0)
+            Bm[i][j] = comm.recv(source = 0)
+
+
 MPI.Init
 
+
+
 if (rank == 0):
     for i in range(size):
-     for j in range(size):
-        Am[i][j] = random.randint(0,6)
-        Bm[i][j] = random.randint(0,6)
-        comm.send(Am[i][j], 1)
-        comm.send(Am[i][j], 2)
-        comm.send(Am[i][j], 3)
+         for j in range(size):
+            Am[i][j] = int(random.uniform(0,6))
+            Bm[i][j] = int(random.uniform(0,6))
+           
+            
 
-        comm.send(Bm[i][j], 1)
-        comm.send(Bm[i][j], 2)
-        comm.send(Bm[i][j], 3)
+for i in range(size):
+    for j in range(size):
+        Am[i][j] = comm.bcast(Am[i][j], root = 0)
+        Bm[i][j] = comm.bcast(Bm[i][j], root = 0)  
+    
 
-    start_1 = time.time()
-    for i in range(size):
+if (rank == 0):
+ start_1 = time.time()
+ for i in range(size):
         for j in range(size):
             for k in range(size):
-                M[i][j] += Am[i][k]*Bm[k][j]
-    end_1 = time.time()
-    print(f"Time single: {(end_1-start_1)*1000} milliseconds")
+             M[i][j] += Am[i][k]*Bm[k][j]
+ end_1 = time.time()
+ print(f"Time single: {(end_1-start_1)*1000} milliseconds")
+ 
+ 
+start_2 = time.time()  
 
-start_2 = time.time()
 if (rank == 0):
     CalculateMatrix(0, size//ProcessNumber)
-    
-elif (rank == 1):
+    PrintMatrix()
+
+if (rank == 1):
     CalculateMatrix((size//ProcessNumber) + 1, size//ProcessNumber*2)
+    SendResult((size//ProcessNumber) + 1, size//ProcessNumber*2)
+    PrintMatrix()
 
-elif (rank == 2):
-    CalculateMatrix((size//ProcessNumber*2)+1, size//ProcessNumber*3)
     
-elif (rank == 3):
+
+if (rank == 2):
+    CalculateMatrix(((size//ProcessNumber)*2)+1, size//ProcessNumber*3)
+    SendResult(((size//ProcessNumber)*2)+1, size//ProcessNumber*3)
+    PrintMatrix()
+    
+
+if (rank == 3):
     CalculateMatrix((size//ProcessNumber*3)+1, size)
+    SendResult((size//ProcessNumber*3)+1, size)
+    PrintMatrix()
     
-
+    
 end_2 = time.time()
 
-print(CompareMatrixes())
+
 print(f"Time multi-process: {(end_2-start_2)*1000} milliseconds")
 
 MPI.Finalize()

@@ -6,11 +6,12 @@ P_alphavit = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz'
 empty_passward = ''
 empty_hash = ''
 hash = hashlib.md5()
+comm = MPI.COMM_WORLD
 
-passward = b'AqM'
+passward = b'0Wj'
+
 hash.update(passward)
 empty_hash = hash.hexdigest()
-print("Hello")
 def bruteForeceSIngle (begin, end):
     for i in range(begin, end):
         for j in range(len(P_alphavit)):
@@ -34,9 +35,8 @@ def bruteForece (begin, end):
                 passward = hash.hexdigest()
                 if (empty_hash == passward):
                     print("Password FOUND!", f"{P_alphavit[i]}{P_alphavit[j]}{P_alphavit[k]} by proccess {comm.Get_rank()+1}")
+
                     
-                    
-comm = MPI.COMM_WORLD
 
 MPI.Init  
 
