@@ -5,7 +5,7 @@
 #include <iostream>
 #include <chrono>
 
-int N = 4096;
+int N = 2048;
 
 MPI_Status status;
 
@@ -111,15 +111,15 @@ int main(int argc, char** argv) {
 
 
         auto stop_mult = std::chrono::high_resolution_clock::now();
-        auto duration_mult = std::chrono::duration_cast<std::chrono::milliseconds>(stop_mult - start_mult).count();
+        std::chrono::duration<float> duration_mult = (stop_mult - start_mult) * 1000;
 
-        std::cout << "Execution in multi-thread, ms: " << duration_mult << " \n";
+        std::cout << "Execution in multi-process, ms: " << duration_mult.count() << " \n";
 
         auto start_single = std::chrono::high_resolution_clock::now();
         matrix_single = multiplyMatrices(matrix_a, matrix_b, N);
         auto stop_single = std::chrono::high_resolution_clock::now();
-        auto duration_single = std::chrono::duration_cast<std::chrono::milliseconds>(stop_single - start_single).count();
-        std::cout << "Execution in single-thread, ms:  " << duration_single << " \n";
+        std::chrono::duration<float> duration_single = (stop_single - start_single) * 1000;
+        std::cout << "Execution in single-process, ms:  " << duration_single.count() << " \n";
         std::cout << "Check are matrix equel:" << (isEq(matrix_c, matrix_single) ? "Yes" : "No") << '\n';
 
 
