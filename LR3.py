@@ -8,7 +8,7 @@ empty_hash = ''
 hash = hashlib.md5()
 comm = MPI.COMM_WORLD
 
-passward = b'0Wj'
+passward = b'zzz'
 
 hash.update(passward)
 empty_hash = hash.hexdigest()
@@ -23,6 +23,7 @@ def bruteForeceSIngle (begin, end):
                 passward = hash.hexdigest()
                 if (empty_hash == passward):
                     print("Password FOUND!", f"{P_alphavit[i]}{P_alphavit[j]}{P_alphavit[k]}")
+                    return
 
 def bruteForece (begin, end):
     for i in range(begin, end):
@@ -35,6 +36,7 @@ def bruteForece (begin, end):
                 passward = hash.hexdigest()
                 if (empty_hash == passward):
                     print("Password FOUND!", f"{P_alphavit[i]}{P_alphavit[j]}{P_alphavit[k]} by proccess {comm.Get_rank()+1}")
+                    return
 
                     
 
